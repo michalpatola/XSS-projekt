@@ -1,0 +1,436 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>XSS.exe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: scena 1280×720 skalowana do okna; każdy slajd to jedno okno XP: pasek tytułu, treść w siatce paneli, pasek stanu */
+:root{
+  --desk:#C9D3E2; --bg:#F4F6FA; --panel:#FFFFFF; --face:#ECE9D8; --line:#A9BCD8; --frame:#7F9DB9;
+  --ink:#18202E; --muted:#475366; --navy:#0A246A; --blue:#245EDC; --sel:#316AC5; --soft:#EAF1FC;
+  --ok:#237A23; --okbg:#E6F5E2; --err:#B8331A; --errbg:#FCE9E4; --warnbg:#FFF5D1; --balloon:#FFFFE1;
+  --ui:Tahoma,Verdana,"DejaVu Sans",sans-serif;
+  --head:"Trebuchet MS",Tahoma,Verdana,"DejaVu Sans",sans-serif;
+  --mono:"Lucida Console",Consolas,"DejaVu Sans Mono","Courier New",monospace;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--desk);color:var(--ink);font-family:var(--ui);box-sizing:border-box;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#view{position:relative;width:100%;height:100%}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;overflow:hidden;transform-origin:50% 50%;background:var(--bg);box-shadow:0 6px 30px rgba(10,36,106,.25);border:3px solid #0831D9;border-top:0;border-radius:10px 10px 0 0;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+.ic{width:24px;height:24px;flex:none;display:inline-block;vertical-align:middle}
+.mono{font-family:var(--mono)}
+
+/* pasek tytułu */
+.hdr{position:absolute;left:0;right:0;top:0;height:46px;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;background:linear-gradient(180deg,#0997FF 0%,#0053EE 9%,#0050EE 18%,#0066FF 72%,#0060F8 88%,#003DD7 100%);color:#fff;font:bold 18px var(--head);text-shadow:1px 1px #0F1089;border-radius:8px 8px 0 0}
+.hdr .ic{width:24px;height:24px}
+.hdr .ht{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .ht em{font-style:normal;font-weight:normal;opacity:.85}
+.tbtn{width:27px;height:27px;border:1px solid #fff;border-radius:4px;background:linear-gradient(135deg,#6FA8FF,#2565E8 55%,#1D5BE0);position:relative;flex:none}
+.tbtn.x{background:linear-gradient(135deg,#F5A58C,#E0441C 55%,#C7300B)}
+.tbtn.mn::after{content:"";position:absolute;left:6px;width:9px;bottom:6px;height:3px;background:#fff}
+.tbtn.mx::after{content:"";position:absolute;inset:5px;border:2px solid #fff;border-top-width:4px}
+.tbtn.x::before,.tbtn.x::after{content:"";position:absolute;left:11.5px;top:4px;width:2.5px;height:17px;background:#fff;transform:rotate(45deg)}
+.tbtn.x::after{transform:rotate(-45deg)}
+
+/* pasek stanu */
+.sb{position:absolute;left:0;right:0;bottom:0;height:34px;display:flex;background:var(--face);border-top:1px solid #fff;box-shadow:0 -1px 0 #ACA899;font-size:15px;color:#333}
+.sb>div{display:flex;align-items:center;gap:8px;padding:0 14px;border-right:1px solid #ACA899;box-shadow:1px 0 0 #fff;white-space:nowrap}
+.sb .ic{width:18px;height:18px}
+.sb .grow{flex:1}
+.sb .num{font-variant-numeric:tabular-nums;min-width:96px;justify-content:center}
+.segs{display:flex;gap:2px;padding:2px;border:1px solid var(--frame);background:#fff;height:14px}
+.segs i{width:9px;background:#E1E6EE}
+.segs i.on{background:linear-gradient(180deg,#ACEDAD,#2EB82E 45%,#1E9E1E)}
+
+/* strona */
+.page{position:absolute;left:0;right:0;top:46px;bottom:34px;padding:24px 42px 24px;display:flex;flex-direction:column;gap:10px}
+.page.fade{animation:fade .25s ease-out}
+@keyframes fade{from{opacity:0}}
+.page h2{margin:0;font:bold 38px/1.1 var(--head);color:var(--navy);text-wrap:balance}
+.lead{margin:0 0 6px;font-size:21px;color:var(--muted);line-height:1.4;max-width:70ch}
+.body{flex:1;min-height:0;display:grid;gap:22px}
+.c2{grid-template-columns:1fr 1fr}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c4{grid-template-columns:repeat(4,1fr)}
+.c64{grid-template-columns:1.35fr 1fr}
+.c46{grid-template-columns:1fr 1.35fr}
+.g32{grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr}
+.g22{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.stack{display:flex;flex-direction:column;gap:16px;min-height:0;min-width:0}
+.stack>.grow{flex:1}
+
+/* panele */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 6px rgba(20,40,90,.08);padding:18px 22px;display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+.panel.ctr{justify-content:center}
+.panel.soft{background:var(--soft);border-color:#C3D3EE}
+.panel.ok{background:var(--okbg);border-color:#A9D3A0}
+.panel.bad{background:var(--errbg);border-color:#E7B1A3}
+.panel.warn{background:var(--warnbg);border-color:#E3CF84}
+.ph{display:flex;align-items:center;gap:10px;font:bold 22px/1.2 var(--head);color:var(--navy)}
+.ph .ic{width:34px;height:34px}
+.ph small{margin-left:auto;font:bold 15px var(--ui);color:#7a869a;letter-spacing:.06em}
+.panel p{margin:0;font-size:19px;line-height:1.45}
+.panel p.m{color:var(--muted)}
+.bl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:space-evenly;gap:12px;flex:1}
+.bl li{display:flex;gap:14px;align-items:flex-start}
+.bl .ic{width:38px;height:38px;margin-top:2px}
+.bl b{display:block;font:bold 22px/1.25 var(--head);color:var(--navy);margin-bottom:3px}
+.bl span{display:block;font-size:19px;line-height:1.4;color:var(--muted)}
+code,.cd{font-family:var(--mono);font-size:.9em;background:#EEF2F9;border:1px solid #D3DCEB;border-radius:3px;padding:0 5px;color:#1d2b4a;white-space:nowrap}
+.arrow{display:flex;align-items:center;justify-content:center;font:bold 34px var(--ui);color:var(--blue)}
+.cap{font-size:15px;color:#6b7587;text-align:center}
+
+/* mini okna XP */
+.mw{border:2px solid #0831D9;border-top:0;border-radius:6px 6px 0 0;background:#fff;display:flex;flex-direction:column;box-shadow:1px 2px 6px rgba(0,0,0,.18);min-width:0}
+.mwt{height:28px;flex:none;display:flex;align-items:center;gap:6px;padding:0 4px 0 8px;margin:0 -2px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#0997FF 0%,#0053EE 10%,#0066FF 75%,#003DD7 100%);color:#fff;font:bold 14px var(--head);text-shadow:1px 1px #0F1089}
+.mwt .ic{width:16px;height:16px}
+.mwt span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mwt i{width:19px;height:19px;border:1px solid #fff;border-radius:3px;background:linear-gradient(135deg,#F5A58C,#E0441C 55%,#C7300B);position:relative;flex:none}
+.mwt i::before,.mwt i::after{content:"";position:absolute;left:8px;top:2px;width:2px;height:13px;background:#fff;transform:rotate(45deg)}
+.mwt i::after{transform:rotate(-45deg)}
+.maddr{display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--face);border-bottom:1px solid #ACA899;font:15px var(--mono);color:#222;white-space:nowrap;overflow:hidden}
+.maddr::before{content:"Adres";font:13px var(--ui);color:#666;margin-right:2px}
+.maddr .ic{width:15px;height:15px}
+.mwb{padding:12px 14px;font-size:17px;flex:1;min-height:0}
+.mwb.face{background:var(--face)}
+.mwb.np{font:18px/1.5 var(--mono);white-space:pre}
+.dm{display:flex;align-items:center;gap:12px;font-size:17px;line-height:1.35}
+.dm .ic{width:34px;height:34px}
+.dbs{display:flex;justify-content:center;gap:8px;margin-top:10px}
+.xpb{display:inline-flex;align-items:center;justify-content:center;min-width:76px;padding:3px 12px;font:14px var(--ui);color:#000;background:linear-gradient(180deg,#fff,#ECEBE6 86%,#D6D0C5);border:1px solid #003C74;border-radius:3px;white-space:nowrap}
+.lv{width:100%;border-collapse:collapse;font-size:17px}
+.lv th{font:13px var(--ui);text-align:left;padding:4px 10px;background:#EBEADB;border-bottom:1px solid #ACA899;border-right:1px solid #D0CFC1;color:#333}
+.lv td{padding:5px 10px}
+.lv td .ic{width:18px;height:18px;margin-right:6px}
+.lv tr.hl td{background:var(--sel);color:#fff;font-weight:bold}
+
+/* liczby */
+.tile{align-items:center;justify-content:center;text-align:center;gap:10px}
+.tile .unit{font:bold 22px var(--head);color:var(--muted);letter-spacing:.08em;margin-top:-4px}
+.tile .big{white-space:nowrap;font:bold 54px/1 var(--head);color:var(--navy);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tile .big.r{color:var(--err)}
+.tile p{font-size:18px;color:var(--muted)}
+.tile .ic{width:44px;height:44px}
+.src{font-size:15px;color:#6b7587}
+
+/* tabele */
+.tbl{width:100%;height:100%;border-collapse:collapse;background:#fff;font-size:19px}
+.tbl th{font:bold 15px var(--ui);text-align:left;padding:8px 14px;background:#EBEADB;border-bottom:1px solid #ACA899;border-right:1px solid #D0CFC1;color:#333}
+.tbl td{padding:10px 14px;border-bottom:1px solid #E4E8EF;vertical-align:middle;line-height:1.35}
+.tbl td:first-child{font:bold 20px var(--head);color:var(--navy);white-space:nowrap}
+.tbl td:first-child .ic{width:30px;height:30px;margin-right:8px}
+.tblw{border:1px solid var(--frame);border-radius:4px;overflow:hidden;background:#fff;flex:1;min-height:0;display:flex}
+.mini{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--frame);background:#fff}
+.mini i{width:13px;height:13px;background:#E1E6EE}
+.mini i.on{background:linear-gradient(180deg,#ACEDAD,#2EB82E 45%,#1E9E1E)}
+.mini.r i.on{background:linear-gradient(180deg,#f7b1a0,#E0441C 45%,#b52f0f)}
+
+/* kod */
+.code{background:#fff;border:1px solid var(--frame);font:18px/1.65 var(--mono);padding:10px 14px;white-space:pre;overflow:hidden}
+.code .c{color:#237A23}
+.code .x{background:#FCE0D9;text-decoration:underline wavy var(--err);text-underline-offset:5px}
+.code .y{background:#DDF3D8}
+.codeh{display:flex;align-items:center;gap:8px;font:bold 17px var(--head);padding:6px 10px;color:#fff;border-radius:4px 4px 0 0}
+.codeh.bad{background:var(--err)}
+.codeh.good{background:#2E8E2E}
+.term{background:#000;color:#C8C8C8;font:16px/1.6 var(--mono);padding:10px 12px;white-space:pre-wrap;border:2px solid #0831D9;border-top:0}
+
+/* elementy specjalne */
+.t1{justify-content:center;gap:14px}
+.t1k{font:bold 15px var(--ui);color:#6b7587;text-transform:uppercase;letter-spacing:.14em}
+.t1 h1{margin:0;font:bold 104px/1 var(--head);color:var(--navy);letter-spacing:-.02em}
+.t1 h1 b{color:var(--err)}
+.t1 h3{margin:0;font:28px var(--ui);color:#333}
+.t1 p{font-size:20px;color:var(--muted);max-width:30ch}
+.who{display:flex;align-items:center;gap:12px;font-size:22px;padding-top:16px;border-top:1px solid #D6DCE6;margin-top:8px}
+.who .ic{width:34px;height:34px}
+.authors{display:flex;flex-direction:column;gap:8px}
+.authors span{display:flex;align-items:center;gap:12px}
+.cardn{font:bold 15px var(--mono);color:#7a869a}
+.bigl{font:bold 92px/1 var(--head);color:var(--navy)}
+.bigl b{color:var(--err)}
+.wall{width:46px;border:2px solid #5a2a14;background-color:#a8502a;background-image:linear-gradient(#5a2a14 2px,transparent 2px),linear-gradient(90deg,#5a2a14 2px,transparent 2px);background-size:100% 22px,46px 22px;border-radius:2px}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:stretch}
+.step{align-items:center;text-align:center;justify-content:center}
+.step>.ic{width:84px;height:84px}
+.step .no{width:40px;height:40px;border-radius:50%;background:var(--blue);color:#fff;font:bold 20px var(--ui);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #CFE0FB}
+.flowv{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;justify-content:space-evenly}
+.node{display:flex;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:18px;width:100%;box-sizing:border-box}
+.node .ic{width:36px;height:36px}
+.node.bad{background:var(--errbg);border-color:#E7B1A3}
+.down{font:bold 24px var(--ui);color:var(--blue);line-height:1}
+.users{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:100%}
+.users .ic{width:100%;height:auto;aspect-ratio:1}
+.tree p{margin:0;padding:3px 6px;display:flex;align-items:center;gap:8px;font:17px var(--mono)}
+.tree .ic{width:22px;height:22px}
+.tree .l1{margin-left:28px}.tree .l2{margin-left:56px}
+.tree .hl{background:var(--errbg);outline:2px solid var(--err)}
+.srcl{display:grid;grid-template-columns:1fr 1fr;gap:26px 10px;margin-top:8px}
+.srcl div,.snkl div{display:flex;align-items:center;gap:10px;font-size:18px}
+.srcl .ic,.snkl .ic{width:36px;height:36px}
+.snkl{display:flex;flex-direction:column;gap:24px;margin-top:8px}
+.q{font:bold 22px/1.3 var(--head);color:var(--navy);text-align:center}
+.bsod{background:#0000AA;color:#fff;font:17px/1.5 var(--mono);border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.bsod b{background:#fff;color:#0000AA;padding:0 6px;align-self:flex-start}
+.prof{display:flex;gap:16px;align-items:center}
+.prof .av{width:90px;height:90px;border:2px solid #333;background:#d9e4f5;display:flex;align-items:center;justify-content:center}
+.prof .av .ic{width:70px;height:70px}
+.prof h4{margin:0;font:bold 26px var(--head);color:#003399}
+.psec{border:1px solid #6699CC;margin-top:10px}
+.psec div{background:#6699CC;color:#fff;font:bold 14px var(--ui);padding:3px 10px}
+.psec p{margin:0;padding:8px 10px;font-size:18px;color:#C00;font-weight:bold}
+.tw{border:1px solid #d3d9e2;border-left:4px solid var(--err);background:#fff;padding:10px 12px;font-size:16px}
+.twh{display:flex;align-items:center;gap:6px}
+.twh .ic{width:22px;height:22px}
+.twh small{margin-left:auto;color:#888}
+.tw p{margin:6px 0;font:17px var(--mono)}
+.tw .f{font-size:15px;color:#444}
+.layers{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:space-evenly}
+.layer{display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:4px;background:#fff;font-size:18px}
+.layer b{font:bold 18px var(--head);color:var(--navy);min-width:28px}
+.layer .ic{width:28px;height:28px;margin-left:auto}
+.numc .no{font:bold 46px/1 var(--head);color:var(--blue)}
+.chk{width:15px;height:15px;border:1px solid #1C5180;background:linear-gradient(135deg,#DCDCD7,#fff);display:inline-block;position:relative;flex:none}
+.chk.on::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid #21A121;border-width:0 3px 3px 0;transform:rotate(40deg)}
+.ckl{display:flex;flex-direction:column;gap:8px}
+.ckl div{display:flex;align-items:center;gap:10px;font-size:17px}
+.fld{background:#fff;border:1px solid var(--frame);padding:4px 8px;font-size:17px;min-height:22px}
+.bal{position:relative;background:var(--balloon);border:1px solid #000;border-radius:7px;padding:8px 12px;font-size:15px;box-shadow:1px 2px 5px rgba(0,0,0,.25)}
+.bal::after{content:"";position:absolute;left:24px;top:-8px;width:14px;height:14px;background:var(--balloon);border-left:1px solid #000;border-top:1px solid #000;transform:rotate(45deg)}
+.sd{display:flex;align-items:center;gap:14px;font-size:20px}
+.sd i{width:52px;height:52px;border-radius:10px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font:bold 26px var(--ui);font-style:normal;color:#fff;flex:none;box-shadow:0 0 0 1px #9aaccc,inset 0 -5px 8px rgba(0,0,0,.2)}
+.sd .y{background:linear-gradient(180deg,#FFD84D,#E0A800)}
+.sd .r{background:linear-gradient(180deg,#F5875F,#D9380E)}
+.sd .g{background:linear-gradient(180deg,#7BD86A,#2F9E2F)}
+.sd b{display:block;font:bold 24px var(--head);color:var(--navy)}
+.sd span{display:block;font-size:18px;color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){.page.fade{animation:none}}
+</style>
+
+<div id="view"><div id="stage" role="region" aria-label="Prezentacja XSS"></div></div>
+
+<script>
+"use strict";
+const sv=b=>`<svg viewBox="0 0 32 32" class="ic" aria-hidden="true">${b}</svg>`;
+const folderC=(a,b,c)=>sv(`<path d="M2 7h10l3 3h15v18H2z" fill="${a}" stroke="${c}"/><path d="M2 12h28v16H2z" fill="${b}" stroke="${c}"/>`);
+const docC=(f,l)=>sv(`<path d="M7 3h13l6 6v20H7z" fill="${f}" stroke="#6b7a96"/><path d="M20 3v6h6" fill="#dfe6f2" stroke="#6b7a96"/><path d="M10 14h12M10 18h12M10 22h9" stroke="${l}" stroke-width="1.6"/>`);
+const shieldC=c=>sv(`<path d="M16 2 4 6v9c0 7 5 12 12 15 7-3 12-8 12-15V6z" fill="${c}" stroke="#2b2b2b"/><path d="M16 2v28M4 14h24" stroke="rgba(255,255,255,.55)" stroke-width="1.4"/>`);
+const ICON={
+ folder:folderC('#E8B832','#F8D775','#B8860B'), folderRed:folderC('#C9311B','#F0705A','#7a1a0c'),
+ doc:docC('#fff','#9aa9c2'), docG:docC('#E3F7DD','#2EB82E'), docR:docC('#FFE0D8','#E0441C'),
+ xss:sv(`<path d="M7 3h13l6 6v20H7z" fill="#fff" stroke="#6b7a96"/><path d="M20 3v6h6" fill="#dfe6f2" stroke="#6b7a96"/><text x="16.5" y="22" font-size="10" font-family="monospace" text-anchor="middle" fill="#d22" font-weight="bold">&lt;/&gt;</text>`),
+ comp:sv(`<rect x="4" y="4" width="24" height="18" rx="2" fill="#d9dde4" stroke="#6b7280"/><rect x="7" y="7" width="18" height="12" fill="#3b78d8"/><path d="M7 16l6-4 5 3 7-4v8H7z" fill="#5fa83a"/><path d="M11 26h10l2 3H9z" fill="#c4c9d2" stroke="#6b7280"/>`),
+ db:sv(`<path d="M5 7v18c0 2.2 4.9 4 11 4s11-1.8 11-4V7" fill="#6f8fc4" stroke="#3d5a8a"/><path d="M5 13c0 2.2 4.9 4 11 4s11-1.8 11-4M5 19c0 2.2 4.9 4 11 4s11-1.8 11-4" fill="none" stroke="#3d5a8a"/><ellipse cx="16" cy="7" rx="11" ry="4" fill="#bcd0ee" stroke="#3d5a8a"/>`),
+ server:sv(`<rect x="8" y="2" width="16" height="28" rx="2" fill="#cfd3da" stroke="#4b5363"/><path d="M11 6h10M11 9h10M11 12h10" stroke="#4b5363"/><circle cx="12" cy="24" r="1.7" fill="#2c2"/><circle cx="17" cy="24" r="1.7" fill="#fb3"/>`),
+ cookie:sv(`<circle cx="16" cy="16" r="12" fill="#d8a35c" stroke="#8a5a22"/><circle cx="11" cy="12" r="2" fill="#5a3410"/><circle cx="19" cy="10" r="1.6" fill="#5a3410"/><circle cx="20" cy="19" r="2.2" fill="#5a3410"/><circle cx="12" cy="20" r="1.5" fill="#5a3410"/>`),
+ bug:sv(`<path d="M16 10v18M9 14l-6-3M23 14l6-3M9 19H2M23 19h7M9 24l-6 3M23 24l6 3M14 5l-3-3M18 5l3-3" stroke="#222" stroke-width="1.8"/><ellipse cx="16" cy="18" rx="7" ry="9" fill="#c0262d" stroke="#5a0a0d"/><path d="M16 10v17" stroke="#5a0a0d"/><circle cx="16" cy="8" r="4" fill="#2b2b2b"/><circle cx="13" cy="16" r="1.6" fill="#2b2b2b"/><circle cx="19" cy="21" r="1.6" fill="#2b2b2b"/>`),
+ shieldR:shieldC('#E0441C'),shieldY:shieldC('#FFD200'),shieldG:shieldC('#2EB82E'),
+ mail:sv(`<rect x="3" y="8" width="26" height="17" fill="#FFF7D6" stroke="#6b5b2b"/><path d="M3 8l13 10L29 8" fill="none" stroke="#6b5b2b"/>`),
+ user:sv(`<circle cx="16" cy="10" r="6" fill="#f3c9a0" stroke="#7a5230"/><path d="M4 30c0-7 5-11 12-11s12 4 12 11z" fill="#3b78d8" stroke="#1d3f7a"/>`),
+ hacker:sv(`<path d="M5 30c0-9 4-14 11-14s11 5 11 14z" fill="#3a3a3a"/><path d="M8 19c0-10 3-16 8-16s8 6 8 16z" fill="#262626"/><ellipse cx="16" cy="13" rx="5" ry="6" fill="#0d0d0d"/><circle cx="14" cy="13" r="1.1" fill="#f33"/><circle cx="18" cy="13" r="1.1" fill="#f33"/>`),
+ lock:sv(`<path d="M10 14v-4a6 6 0 0 1 12 0v4" fill="none" stroke="#8a6d1d" stroke-width="3"/><rect x="7" y="14" width="18" height="14" rx="2" fill="#f2c94c" stroke="#8a6d1d"/>`),
+ warn:sv(`<path d="M16 3 30 28H2z" fill="#FFD200" stroke="#8a6d00" stroke-linejoin="round"/><path d="M16 11v9" stroke="#111" stroke-width="3"/><circle cx="16" cy="24" r="1.8" fill="#111"/>`),
+ err:sv(`<circle cx="16" cy="16" r="13" fill="#E0441C" stroke="#8a1d07"/><path d="M11 11l10 10M21 11 11 21" stroke="#fff" stroke-width="3.2"/>`),
+ info:sv(`<circle cx="16" cy="16" r="13" fill="#3B78D8" stroke="#163f86"/><circle cx="16" cy="10" r="2" fill="#fff"/><path d="M16 14v10" stroke="#fff" stroke-width="3.2"/>`),
+ ok:sv(`<circle cx="16" cy="16" r="13" fill="#2EB82E" stroke="#16661a"/><path d="M10 16l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2"/>`),
+ help:sv(`<circle cx="16" cy="16" r="13" fill="#3B78D8" stroke="#163f86"/><text x="16" y="22" font-size="17" text-anchor="middle" fill="#fff" font-weight="bold" font-family="Tahoma,sans-serif">?</text>`),
+ bag:sv(`<path d="M12 5h8l-2 5h-4z" fill="#a8742c" stroke="#6b4413"/><path d="M14 10h4c6 3 9 8 9 13 0 4-4 6-11 6S5 27 5 23c0-5 3-10 9-13z" fill="#d1a056" stroke="#6b4413"/><text x="16" y="25" font-size="11" text-anchor="middle" font-weight="bold" fill="#3b2508" font-family="Tahoma,sans-serif">$</text>`),
+ palette:sv(`<path d="M16 4C8 4 3 9 3 16s5 12 11 12c2 0 2-2 1-3s0-3 2-3h4c5 0 8-3 8-7 0-6-6-11-13-11z" fill="#f0d9b5" stroke="#8a6d3b"/><circle cx="9" cy="15" r="2.2" fill="#e33"/><circle cx="12" cy="9" r="2.2" fill="#3b78d8"/><circle cx="19" cy="8" r="2.2" fill="#2EB82E"/><circle cx="24" cy="13" r="2.2" fill="#fb3"/>`),
+ crown:sv(`<path d="M4 24 6 10l6 6 4-9 4 9 6-6 2 14z" fill="#f2c94c" stroke="#8a6d1d"/><rect x="4" y="24" width="24" height="4" fill="#e0b030" stroke="#8a6d1d"/>`),
+ gavel:sv(`<rect x="11" y="3" width="14" height="8" rx="1" transform="rotate(35 18 7)" fill="#a0622d" stroke="#5a3410"/><path d="M14 12 5 25" stroke="#7a4a22" stroke-width="3"/><rect x="15" y="25" width="14" height="4" fill="#7a4a22"/>`),
+ sink:sv(`<path d="M3 14h26l-3 10H6z" fill="#dde2ea" stroke="#5b6475"/><path d="M14 14V7a3 3 0 0 1 6 0" fill="none" stroke="#5b6475" stroke-width="2"/><ellipse cx="16" cy="18" rx="3" ry="1.2" fill="#5b6475"/>`),
+ tree:sv(`<rect x="3" y="3" width="10" height="7" fill="#F8D775" stroke="#B8860B"/><rect x="15" y="13" width="12" height="7" fill="#F8D775" stroke="#B8860B"/><rect x="15" y="23" width="12" height="7" fill="#F8D775" stroke="#B8860B"/><path d="M8 10v17h7M8 16h7" fill="none" stroke="#555"/>`),
+ mirror:sv(`<rect x="9" y="3" width="14" height="26" rx="7" fill="#bfe3ff" stroke="#4a7aa8" stroke-width="1.5"/><path d="M13 10l6 6M12 17l7 7" stroke="#fff" stroke-width="2"/>`),
+ form:sv(`<rect x="4" y="4" width="24" height="24" fill="#fff" stroke="#6b7a96"/><rect x="8" y="9" width="16" height="4" fill="#eef2f8" stroke="#9aa9c2"/><rect x="8" y="16" width="16" height="4" fill="#eef2f8" stroke="#9aa9c2"/><rect x="15" y="23" width="9" height="3" fill="#3b78d8"/>`),
+ url:sv(`<circle cx="16" cy="16" r="12" fill="#5aa0e6" stroke="#1d4f8a"/><path d="M4 16h24M16 4c-5 5-5 19 0 24M16 4c5 5 5 19 0 24" fill="none" stroke="#fff"/>`),
+ clock:sv(`<circle cx="16" cy="16" r="12" fill="#fff" stroke="#555" stroke-width="2"/><path d="M16 8v8l5 3" stroke="#222" stroke-width="2" fill="none"/>`),
+ api:sv(`<rect x="3" y="9" width="26" height="14" rx="2" fill="#6b7fa8" stroke="#2c3a59"/><text x="16" y="20" font-size="9" text-anchor="middle" fill="#fff" font-weight="bold" font-family="Tahoma,sans-serif">API</text>`),
+ msg:sv(`<rect x="2" y="4" width="14" height="11" fill="#cfe0f8" stroke="#3b78d8"/><rect x="16" y="17" width="14" height="11" fill="#cfe0f8" stroke="#3b78d8"/><path d="M9 16v6h6M13 19l3 3-3 3" fill="none" stroke="#c33" stroke-width="2"/>`),
+ hash:sv(`<rect x="3" y="3" width="26" height="26" rx="3" fill="#fff" stroke="#6b7a96"/><text x="16" y="23" font-size="19" text-anchor="middle" font-weight="bold" fill="#3b78d8" font-family="Tahoma,sans-serif">#</text>`),
+ param:sv(`<rect x="3" y="3" width="26" height="26" rx="3" fill="#fff" stroke="#6b7a96"/><text x="16" y="21" font-size="12" text-anchor="middle" font-weight="bold" fill="#3b78d8" font-family="monospace">?q=</text>`),
+ list:sv(`<rect x="6" y="3" width="20" height="26" fill="#fff" stroke="#6b7a96"/><path d="M10 9h12M10 15h12M10 21h8" stroke="#3b78d8" stroke-width="2"/>`),
+ img:sv(`<rect x="4" y="5" width="24" height="22" fill="#fff" stroke="#999"/><path d="M4 22l7-7 5 5 4-3 8 6" fill="none" stroke="#c33" stroke-width="1.6"/><path d="M18 5l-3 8 4 4-2 10" fill="none" stroke="#fff" stroke-width="3"/>`),
+ cmd:sv(`<rect x="3" y="5" width="26" height="22" fill="#000" stroke="#999"/><path d="M7 11l4 3-4 3M13 19h6" stroke="#ccc" stroke-width="2" fill="none"/>`),
+ link:sv(`<rect x="3" y="12" width="14" height="8" rx="4" fill="none" stroke="#3b78d8" stroke-width="3"/><rect x="15" y="12" width="14" height="8" rx="4" fill="none" stroke="#3b78d8" stroke-width="3"/>`),
+};
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* szablony */
+const BL=items=>`<ul class="bl">${items.map(([i,t,s])=>`<li>${ICON[i]}<div><b>${t}</b>${s?`<span>${s}</span>`:''}</div></li>`).join('')}</ul>`;
+const P=(inner,cls='')=>`<div class="panel ${cls}">${inner}</div>`;
+const PH=(i,t,n)=>`<div class="ph">${ICON[i]}<span>${t}</span>${n?`<small>${n}</small>`:''}</div>`;
+const MW=(t,i,inner,o={})=>`<div class="mw${o.cls?' '+o.cls:''}"${o.st?` style="${o.st}"`:''}><div class="mwt">${i?ICON[i]:''}<span>${t}</span><i></i></div>${o.addr?`<div class="maddr">${o.lock?ICON.lock:''}<span>${o.addr}</span></div>`:''}<div class="mwb${o.b?' '+o.b:''}"${o.bs?` style="${o.bs}"`:''}>${inner}</div></div>`;
+const DL=(icon,title,text,btns=['OK'],st='')=>MW(title,null,`<div class="dm">${ICON[icon]}<div>${text}</div></div><div class="dbs">${[].concat(btns).map(b=>`<b class="xpb">${b}</b>`).join('')}</div>`,{b:'face',st});
+const S=(sec,title,h,lead,cls,body)=>({sec,title,h,lead,cls,body});
+
+const OW=['Broken Access Control','Security Misconfiguration','Software Supply Chain Failures','Cryptographic Failures','Injection','Insecure Design','Authentication Failures','Software or Data Integrity Failures','Security Logging &amp; Alerting Failures','Mishandling of Exceptional Conditions'];
+const PAY="<script>alert('XSS')<\/script>";
+
+const AUTH=['Jakub Duliban','Franciszek Niwicki','Michał Patoła'];
+const SL0=[
+/* 1 */ {sec:0,title:'Atak XSS',cls:'c64',body:`
+ ${P(`<div class="t1k">Prezentacja · bezpieczeństwo aplikacji webowych</div><h1>Atak <b>XSS</b></h1><h3>Cross-Site Scripting</h3><p>Jak działa, jakie ma odmiany i jak się przed nim bronić.</p><div class="who"><div class="authors">${AUTH.map(n=>`<span>${ICON.user}${n}</span>`).join('')}</div></div>`,'t1')}
+ <div class="stack">${MW('payload.txt — Notatnik','doc',esc(PAY),{b:'np',cls:'grow'})}${DL('warn','Komunikat ze strony','<b>XSS</b><br><small>Skrypt uruchomiony na: zaufany-sklep.pl</small>')}${P(`<p class="m">Znany od ponad 20 lat, a wciąż jedna z najczęściej znajdowanych podatności w aplikacjach webowych.</p>`,'soft')}</div>`},
+
+/* 2 */ S(0,'Plan prezentacji','Plan prezentacji','Ok. 35 minut teorii, potem część praktyczna w laboratorium.','g32',
+ [['info','Dlaczego to ważne','OWASP Top 10 i bug bounty w liczbach'],['doc','Podstawy','Czym jest XSS i jak omija Same-Origin Policy'],['folder','Trzy rodzaje XSS','Reflected, Stored, DOM-based, źródła i sinki'],['bug','Skutki i realne ataki','Kradzież sesji, robak Samy, TweetDeck'],['shieldG','Obrona','Kodowanie, sanityzacja, CSP, ciasteczka, Trusted Types'],['comp','Laboratorium i quiz','Praktyka z prowadzącymi, quiz na platformie zewnętrznej']]
+  .map((c,i)=>P(`${PH(c[0],c[1],'0'+(i+1))}<p class="m">${c[2]}</p>`,'ctr')).join('')),
+
+/* 3 */ S(0,'Dlaczego to ważne','Dlaczego to ważne','XSS jest znany od ponad 20 lat, a wciąż należy do najczęściej znajdowanych podatności.','c2',
+ P(BL([['folder','OWASP Top 10','Lista najpoważniejszych zagrożeń dla aplikacji webowych, publikowana co kilka lat.'],['xss','XSS w kategorii Injection','W edycji 2025 Injection jest na 5. miejscu; przez lata zajmowało szczyt listy.'],['bag','Bug bounty','XSS to jeden z najczęściej zgłaszanych błędów, także u dużych firm z własnymi zespołami bezpieczeństwa.']]))+
+ MW('OWASP Top 10:2025 — Eksplorator','folder',`<table class="lv"><thead><tr><th>Pozycja</th><th>Nazwa</th></tr></thead><tbody>${OW.map((n,i)=>`<tr${i===4?' class="hl"':''}><td>${ICON.doc}A${String(i+1).padStart(2,'0')}</td><td>${n}</td></tr>`).join('')}</tbody></table>`,{bs:'padding:0'})),
+
+/* 4 */ S(0,'XSS w liczbach','XSS w liczbach','To nie jest problem z przeszłości: XSS ciągle trafia do raportów i programów bug bounty.','c4',
+ [['18%','','wszystkich zgłoszeń na HackerOne to XSS, najczęstszy typ błędu','HackerOne, raport 2020'],['4,2 mln','USD','nagród wypłaconych za XSS w ciągu roku','HackerOne, raport 2020'],['~501','USD','średnio za jedno zgłoszenie: mało jak na przejęcie konta','HackerOne, raport 2020'],['30 000+','CVE','zarejestrowanych podatności XSS; 100% aplikacji testowanych pod kątem Injection','OWASP Top 10:2025']]
+  .map((t,i)=>P(`<div class="big${i===3?' r':''}">${t[0]}</div><div class="unit">${t[1]||'&nbsp;'}</div><p>${t[2]}</p><div class="src">${t[3]}</div>`,'tile')).join('')),
+
+/* 5 */ S(0,'Czym jest XSS','Czym jest XSS','Atakujący wstrzykuje własny JavaScript do strony, a ten wykonuje się w przeglądarce ofiary.','c2',
+ P(BL([['xss','Wstrzyknięty kod','Złośliwy JavaScript trafia na stronę razem z danymi od użytkownika.'],['user','Wykonuje się u ofiary','Kod nie działa na serwerze, tylko w przeglądarce osoby, która otworzy stronę.'],['lock','W kontekście zaufanej strony','Przeglądarka traktuje go jak kod banku czy sklepu i daje mu te same uprawnienia.']]))+
+ `<div class="stack">${MW('payload.txt — Notatnik','doc',esc(PAY),{b:'np'})}<div class="arrow">↓ trafia na stronę</div>${MW('Zaufany sklep — Przeglądarka','url',`<div style="font:bold 22px var(--head);color:#B5401A;margin-bottom:10px">Zaufany Sklep</div>${DL('warn','Komunikat ze strony','<b>XSS</b> · skrypt działa z uprawnieniami sklepu','OK','max-width:380px')}`,{addr:'https://zaufany-sklep.pl',lock:1,cls:'grow'})}</div>`),
+
+/* 6 */ S(0,'Skąd nazwa XSS','Skąd nazwa XSS','Ciekawostka: skrót mógłby brzmieć CSS, ale ta nazwa była już zajęta.','c2',
+ P(`${PH('palette','Nazwa zajęta')}<div class="bigl">CSS</div><p><b>Cascading Style Sheets</b>, czyli arkusze stylów. Ten skrót funkcjonował w sieci, zanim nazwano atak.</p>${DL('err','Błąd podczas zmieniania nazwy','Nie można zmienić nazwy. Plik o nazwie <b>CSS</b> już istnieje.')}`,'ctr')+
+ P(`${PH('xss','Nazwa ataku')}<div class="bigl"><b>X</b>SS</div><p><b>Cross-Site Scripting.</b> Litera X zastępuje słowo „cross”, żeby nazwy się nie myliły.</p><p class="m">Cross-site, bo kod atakującego działa w kontekście cudzej, zaufanej strony.</p>`,'ctr soft')),
+
+/* 7 */ S(1,'Jak to działa','Jak to działa','Trzy strony ataku: atakujący, podatna aplikacja i ofiara.','flow',
+ [['hacker','Atakujący znajduje pole','Wyszukiwarka, komentarz, pole z imieniem: miejsce, gdzie dane trafiają na stronę bez zabezpieczenia.'],['server','Wstawia tam swój skrypt','Payload trafia do aplikacji razem ze zwykłymi danymi, np. jako komentarz.'],['user','Przeglądarka ofiary go wykonuje','Nie potrafi odróżnić kodu strony od kodu podrzuconego przez atakującego.']]
+  .map((c,i)=>P(`<div class="no">${i+1}</div>${ICON[c[0]]}<div class="ph" style="justify-content:center">${c[1]}</div><p class="m">${c[2]}</p>`,'step')).join('<div class="arrow">→</div>')),
+
+/* 8 */ S(1,'Same-Origin Policy','Same-Origin Policy','Podstawowa zasada bezpieczeństwa przeglądarek: skrypt jednej strony nie sięga do danych innej.','c46',
+ P(BL([['lock','Polityka tego samego pochodzenia','Pochodzenie to protokół, domena i port strony.'],['cookie','Chroni ciasteczka i sesje','Złośliwa strona nie odczyta Twoich ciasteczek z banku czy Facebooka.'],['shieldG','Działa automatycznie','Przeglądarka pilnuje jej na każdej stronie.']]))+
+ P(`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;flex:1;min-height:0">${MW('bank.pl','lock',`<div class="ph" style="font-size:20px">${ICON.lock}Twój Bank</div><p style="font-size:16px;margin:8px 0">Saldo: <b>12 480,00 zł</b></p><div class="dm" style="font:15px var(--mono)">${ICON.cookie}sesja_id=a8f2…</div>`,{addr:'https://bank.pl',lock:1})}<div class="wall"></div>${MW('zla-strona.com','hacker',`<div style="font:bold 20px var(--head);color:#c00">Darmowe tapety!!!</div><p style="font:15px var(--mono);margin:10px 0 0">document.cookie?</p>`,{addr:'http://zla-strona.com',bs:'background:repeating-linear-gradient(45deg,#fff5a8 0 18px,#ffe066 18px 36px)'})}</div>${DL('err','Odmowa dostępu','Skrypt z <b>zla-strona.com</b> nie może odczytać danych <b>bank.pl</b>.')}`)),
+
+/* 9 */ S(1,'XSS omija SOP','XSS omija Same-Origin Policy','Wstrzyknięty skrypt jest częścią strony banku, więc przeglądarka go wpuszcza.','c46',
+ P(BL([['bug','To samo pochodzenie','Z punktu widzenia przeglądarki skrypt atakującego pochodzi z banku.'],['cookie','Czyta ciasteczka','Ma dostęp do tego samego, co prawdziwy kod strony.'],['doc','Zmienia stronę i wysyła żądania','Podmienia treść i działa w Twoim imieniu.'],['user','Może wszystko, co możesz Ty','To jest cała esencja XSS.']]))+
+ MW('bank.pl','lock',`<div class="ph" style="font-size:22px">${ICON.lock}Twój Bank<small>pochodzenie skryptu: bank.pl</small></div><div class="node bad" style="margin:12px 0">${ICON.bug}<span>Komentarz do oferty z ukrytym skryptem</span></div><div class="stack" style="gap:8px">${['Odczytano ciasteczka','Zmieniono treść strony','Wysłano żądanie jako użytkownik'].map(t=>`<div class="node">${ICON.warn}<span>${t}</span></div>`).join('')}<div class="node" style="background:var(--okbg);border-color:#A9D3A0">${ICON.shieldG}<span><b>Dostęp przyznany:</b> skrypt pochodzi z bank.pl</span></div></div>`,{addr:'https://bank.pl',lock:1})),
+
+/* 10 */ S(2,'Reflected XSS','Reflected XSS (odbity)','Payload jest w żądaniu, a serwer odbija go z powrotem na stronę.','c46',
+ P(BL([['url','Payload w linku','Np. w parametrze wyszukiwarki <code>?q=</code>.'],['mirror','Serwer go odbija','Wkleja dane z adresu na stronę bez zabezpieczenia.'],['user','Działa po kliknięciu','Ofiara musi wejść w spreparowany link.']]))+
+ `<div class="stack">${MW('Normalnie — Przeglądarka','url',`<p style="margin:0;font-size:19px">Wyniki wyszukiwania dla: <b>buty</b></p>`,{addr:'http://sklep.pl/szukaj?q=buty'})}<div class="arrow">↓ zamiast „buty” kawałek HTML</div>${MW('Atak — Przeglądarka','url',`<p style="margin:0 0 12px;font-size:19px;display:flex;align-items:center;gap:6px">Wyniki wyszukiwania dla: ${ICON.img}</p>${DL('warn','Komunikat ze strony','1','OK','max-width:300px')}`,{addr:esc('http://sklep.pl/szukaj?q=<img src=x onerror=alert(1)>'),cls:'grow'})}</div>`),
+
+/* 11 */ S(2,'Reflected: dostarczenie','Jak ofiara trafia na link','Atakujący musi namówić ofiarę do kliknięcia, zwykle przez phishing.','c2',
+ MW('Skrzynka odbiorcza — Poczta','mail',`<div style="font-size:14px;color:#444;border-bottom:1px solid #ddd;padding-bottom:8px;margin-bottom:10px">Od: Obsługa Sklepu &lt;obsluga@sklep-pl.com&gt;<br>Temat: <b>Twoje zamówienie zostało wstrzymane</b></div><p style="font-size:18px;line-height:1.5;margin:0">Dzień dobry,<br>Twoje zamówienie nr 4471 zostało wstrzymane. Sprawdź jego status:</p><p style="font-size:18px;margin:14px 0;color:#00e;text-decoration:underline">Sprawdź status zamówienia</p><p style="font-size:18px;margin:0">Pozdrawiamy,<br>Zespół Sklepu</p><div class="maddr" style="margin:auto -14px -12px;border-top:1px solid #ACA899;border-bottom:0">http://krot.ki/a8F2</div>`,{bs:'display:flex;flex-direction:column'})+
+ P(`${BL([['mail','Mail, komunikator, social media','Klasyczny phishing, tylko że…'],['lock','…link prowadzi do prawdziwej domeny','Ludzie dużo łatwiej ufają znanemu adresowi.'],['link','Payload można ukryć','Ten sam link w trzech postaciach:']])}<div class="ckl" style="font:15px var(--mono)"><div class="fld mono" style="font-size:14px">${esc('sklep.pl/szukaj?q=<img src=x onerror=…>')}</div><div class="fld mono" style="font-size:14px">sklep.pl/szukaj?q=%3Cimg%20src%3Dx%20onerror…</div><div class="fld mono" style="font-size:14px">krot.ki/a8F2</div></div>`)),
+
+/* 12 */ S(2,'Stored XSS','Stored XSS (zapisany, trwały)','Payload zostaje zapisany w aplikacji i atakuje każdego, kto wyświetli stronę.','c46',
+ P(BL([['db','Zapisany w aplikacji','Komentarz, opis profilu, wiadomość na forum trafia do bazy danych.'],['user','Atakuje każdego','Wystarczy, że ktoś normalnie przegląda stronę.'],['url','Bez klikania w linki','Nie trzeba nikogo do niczego namawiać.'],['crown','Ofiarą może być admin','Moderator otwiera panel, a wtedy cała aplikacja stoi otworem.']]))+
+ P(`<div class="flowv"><div class="node">${ICON.form}<span>Komentarz: <b>Świetny artykuł!</b> <code>${esc('<script>…<\/script>')}</code></span></div><div class="down">↓</div><div class="node">${ICON.db}<span>Baza danych: <b>zapisano</b></span></div><div class="down">↓ każde wyświetlenie strony</div><div class="users">${Array(20).fill(ICON.user).join('')}</div><div class="cap">setki, tysiące, nawet miliony użytkowników</div><div class="node bad">${ICON.crown}<span><b>Panel administratora:</b> konto przejęte</span></div></div>`)),
+
+/* 13 */ S(2,'DOM-based XSS','DOM-based XSS','Cała podatność siedzi w JavaScripcie, który działa już w przeglądarce.','c2',
+ P(BL([['tree','DOM','Struktura strony w przeglądarce, którą JavaScript czyta i zmienia.'],['hash','Fragment po #','Skrypt bierze część adresu po <code>#</code> i wstawia ją przez <code>innerHTML</code>.'],['server','Serwer nie bierze udziału','Fragment po # w ogóle nie jest wysyłany do serwera.'],['list','Brak śladów w logach','Nawet idealnie zabezpieczony serwer nic nie zobaczy.']]))+
+ `<div class="stack">${MW('Struktura DOM — Eksplorator','tree',`<div class="tree"><p>${ICON.folder}html</p><p class="l1">${ICON.folder}body</p><p class="l2">${ICON.folder}header</p><p class="l2 hl">${ICON.folderRed}div#wyniki ← innerHTML</p><p class="l2">${ICON.folder}footer</p><p class="l1">${ICON.doc}app.js</p></div>`,{addr:esc('http://strona.pl/#<img src=x onerror=alert(1)>'),cls:'grow'})}${MW('access.log — Notatnik','doc','GET / HTTP/1.1  200',{b:'np'})}<div class="bal">Serwer: „Nic nie widziałem. Część po # do mnie nie dotarła.”</div></div>`),
+
+/* 14 */ S(2,'Źródła i sinki','Źródła i sinki','Szukanie XSS to jedno pytanie: czy dane ze źródła dotrą do sinka, nie będąc po drodze oczyszczone?','c3',
+ P(`${PH('folder','Źródła (sources)')}<p class="m">Dane, nad którymi atakujący ma kontrolę.</p><div class="srcl">${[['url','Adres URL'],['param','Parametry'],['hash','<code>#hash</code>'],['form','Formularze'],['msg','<code>postMessage</code>'],['api','Zewnętrzne API']].map(a=>`<div>${ICON[a[0]]}<span>${a[1]}</span></div>`).join('')}</div>`)+
+ P(`<div class="arrow" style="font-size:44px">→</div><div class="q">Czy coś oczyszcza dane po drodze?</div><div class="node bad">${ICON.err}<span><b>Nie</b> → mamy podatność XSS</span></div><div class="node" style="background:var(--okbg);border-color:#A9D3A0">${ICON.ok}<span><b>Tak</b> → dane trafiają jako tekst</span></div>`,'ctr soft')+
+ P(`${PH('sink','Sinki (sinks)')}<p class="m">Miejsca, gdzie przeglądarka może potraktować dane jak kod.</p><div class="snkl">${['innerHTML','document.write','eval()','onclick / onerror'].map(a=>`<div>${ICON.sink}<code>${a}</code></div>`).join('')}</div>`)),
+
+/* 15 */ S(2,'Porównanie','Trzy rodzaje XSS w skrócie','Różnią się tym, gdzie siedzi payload, kogo atakuje i jak trudno go wykryć.','',
+ `<div class="tblw"><table class="tbl"><thead><tr><th>Typ</th><th>Gdzie jest payload</th><th>Kto jest ofiarą</th><th>Przykład</th><th>Haczyk</th><th>Zagrożenie</th></tr></thead><tbody>
+ ${[['mirror','Reflected','W żądaniu (link)','Osoba, która kliknie','Link z <code>?q=…</code>','Trzeba namówić ofiarę',2],['db','Stored','Zapisany na serwerze','Każdy, kto otworzy stronę','Komentarz na forum','Najgroźniejszy',5],['tree','DOM-based','Przetwarzany w przeglądarce','Osoba, która otworzy link','Fragment <code>#…</code> w adresie','Najtrudniej wykryć',3]].map(r=>`<tr><td>${ICON[r[0]]}${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td><span class="mini${r[6]>3?' r':''}">${[1,2,3,4,5].map(k=>`<i class="${k<=r[6]?'on':''}"></i>`).join('')}</span></td></tr>`).join('')}</tbody></table></div>`),
+
+/* 16 */ S(2,'Blind XSS i mXSS','Dwa pojęcia zaawansowane','Warto je znać, choć to już tematy dla bardziej zaawansowanych.','c2',
+ P(`${PH('mail','Blind XSS')}<p>Odmiana stored, w której atakujący <b>nie widzi</b>, gdzie jego payload się odpali.</p><div style="display:flex;align-items:center;justify-content:space-around;flex:1">${`<div style="text-align:center">${ICON.form.replace('class="ic"','class="ic" style="width:64px;height:64px"')}<div class="cap">formularz kontaktowy</div></div>`}<div class="arrow">→</div><div style="text-align:center">${ICON.clock.replace('class="ic"','class="ic" style="width:48px;height:48px"')}<div class="cap">po 3 dniach</div></div><div class="arrow">→</div><div style="text-align:center">${ICON.crown.replace('class="ic"','class="ic" style="width:64px;height:64px"')}<div class="cap">panel administratora</div></div></div><p class="m">Skrypt wykonuje się dopiero u osoby, która otworzy zgłoszenie.</p>`)+
+ P(`${PH('docR','Mutation XSS (mXSS)')}<p>Kod <b>wygląda na bezpieczny</b>, ale przeglądarka „poprawia” HTML podczas przetwarzania.</p><div style="display:flex;align-items:center;justify-content:space-around;flex:1"><div style="text-align:center">${ICON.docG.replace('class="ic"','class="ic" style="width:72px;height:72px"')}<div class="cap">przeszedł filtr</div></div><div class="arrow">→</div><div style="text-align:center">${ICON.docR.replace('class="ic"','class="ic" style="width:72px;height:72px"')}<div class="cap">po „poprawce” przeglądarki</div></div></div><p class="m">W efekcie z bezpiecznego kodu robi się niebezpieczny.</p>`)),
+
+/* 17 */ S(3,'alert() to przykrywka','alert() to tylko przykrywka','Okienko z alertem to dowód, że kod się wykonuje. Prawdziwy atak jest cichy.','c2',
+ P(`${PH('warn','Co widać w przykładach')}<div style="flex:1;display:flex;align-items:center;justify-content:center">${DL('warn','Komunikat ze strony','1','OK','width:300px')}</div><p class="m">Na prezentacjach i w zgłoszeniach pokazuje się zwykle <code>alert(1)</code>: to tylko sygnał, że skrypt działa.</p>`)+
+ P(`${PH('cmd','Co dzieje się naprawdę')}<div class="term" style="flex:1">C:\\&gt; wysyłanie sesji na serwer atakującego... OK
+C:\\&gt; zapis naciśniętych klawiszy... włączony
+C:\\&gt; żądanie „zmień e-mail” jako użytkownik... OK
+C:\\&gt; _</div><p class="m">W prawdziwym ataku nikt alertów nie odpala. Wszystko dzieje się w tle.</p>`)),
+
+/* 18 */ S(3,'Skutki ataku','Co może zrobić atakujący','Skrypt ma te same uprawnienia co zalogowany użytkownik.','g32',
+ [['cookie','Kradzież sesji','Skrypt wysyła ciasteczko sesyjne atakującemu, a ten loguje się jako Ty, bez hasła.'],['user','Akcje w Twoim imieniu','Zmiana e-maila lub hasła, wiadomości, przelew. Wszystko w tle.'],['form','Keylogger','Zapis wszystkiego, co wpisujesz na stronie.'],['lock','Fałszywy formularz logowania','Na prawdziwej stronie, z prawdziwym adresem i kłódką w pasku.'],['url','Przekierowanie i defacement','Wysłanie na złośliwą stronę albo podmiana treści, żeby ośmieszyć firmę.']]
+  .map(c=>P(`${PH(c[0],c[1])}<p class="m">${c[2]}</p>`,'ctr')).join('')+`<div class="bsod"><span>Wykryto problem. Aplikacja webowa została przejęta.</span><b>*** STOP: 0x0000XSS</b><span>To nie jest niewinne okienko.</span></div>`),
+
+/* 19 */ S(3,'Samy worm (2005)','Robak Samy na MySpace (2005)','Stored XSS, który w ok. 20 godzin uruchomiło ponad milion użytkowników.','c46',
+ P(BL([['user','Autor','Samy Kamkar, wtedy 19 lat, obszedł filtry MySpace i wstawił JavaScript do profilu.'],['bug','Co robił skrypt','Dodawał Samy’ego do znajomych i dopisywał ofierze „but most of all, samy is my hero”.'],['link','Samopowielanie','Kopiował się na profil każdej ofiary, więc każdy zarażony profil zarażał kolejne.'],['gavel','Konsekwencje','MySpace załatał lukę; Samy przyznał się do winy i dostał 3 lata w zawieszeniu.']]))+
+ `<div class="stack">${MW('Profil: Samy — MySpace, 2005','user',`<div class="prof"><div class="av">${ICON.user}</div><div><h4>Samy</h4><p style="margin:2px 0;font-size:17px">Wiek: 19</p><p style="margin:2px 0;font-size:17px">Znajomi: <b class="mono">1 000 000+</b></p></div></div><div class="psec"><div>Bohaterowie odwiedzającego</div><p>but most of all, samy is my hero</p></div><div class="psec"><div>Co dzieje się przy każdej wizycie</div><p style="color:var(--ink);font-weight:normal">+1 znajomy dla Samy’ego, kopia skryptu na profilu gościa</p></div>`,{cls:'grow'})}<div class="c2" style="display:grid;gap:16px">${P(`<div class="big" style="font:bold 40px var(--head);color:var(--navy)">1 mln+</div><div class="src">zarażonych profili</div>`,'tile')}${P(`<div class="big" style="font:bold 40px var(--head);color:var(--navy)">ok. 20 h</div><div class="src">od startu do załatania</div>`,'tile')}</div></div>`),
+
+/* 20 */ S(3,'TweetDeck (2014)','TweetDeck (2014)','Samo wyświetlenie tweeta wystarczało, żeby automatycznie przesłać go dalej.','c46',
+ P(BL([['list','Treść bez kodowania','TweetDeck nie zabezpieczał treści tweetów przy wyświetlaniu.'],['user','Retweet przez samo patrzenie','Skrypt w tweecie retweetował go z konta każdej osoby, która go zobaczyła.'],['clock','Lawina','Jeden tweet: ok. 38 tys. retweetów w 2 minuty; Washington Post pisał o ok. 40 tys. osób.'],['err','Usługa wyłączona','Twitter ogłosił poprawkę, a potem i tak wyłączył TweetDecka na ok. godzinę.']]))+
+ `<div class="stack">${MW('TweetDeck — kolumna „Główna”','list',`<div class="stack" style="gap:10px"><div class="tw"><div class="twh">${ICON.user}<b>@uzytkownik</b><small>teraz</small></div><p>${esc('♥ <script>…<\/script>')}</p><div class="f">Retweety: <b>38 000</b></div></div><div class="tw" style="border-left-color:#ccc"><div class="twh">${ICON.user}<b>@redakcja</b><small>5 min</small></div><p style="font-family:var(--ui)">Konferencja prasowa o 14:00.</p></div></div>`,{cls:'grow',bs:'background:#e9edf2'})}${DL('err','TweetDeck','Usługa tymczasowo wyłączona.')}${P(`<p class="m">W obu przypadkach to były duże, popularne serwisy. Może się przytrafić każdemu.</p>`,'soft')}</div>`),
+
+/* 21 */ S(4,'Kodowanie wyjścia','Kodowanie wyjścia','Pierwsza linia obrony: zanim wyświetlisz dane od użytkownika, zamień znaki specjalne na bezpieczne odpowiedniki.','c46',
+ P(BL([['doc','Output encoding / escaping','Podstawowa zasada przy wyświetlaniu czegokolwiek od użytkownika.'],['ok','<code>&lt;</code> staje się <code>&amp;lt;</code>','Przeglądarka pokaże znak, a nie potraktuje go jak początek tagu.'],['warn','Dopasuj do kontekstu','Złe kodowanie w złym miejscu może po prostu nie zadziałać.']]))+
+ `<div class="stack"><div class="tblw grow"><table class="tbl" style="font-size:18px"><thead><tr><th>Kontekst</th><th>Przykład</th><th>Znak</th><th>Po kodowaniu</th></tr></thead><tbody>
+  <tr><td>Treść HTML</td><td><code>${esc('<p>…</p>')}</code></td><td><code>&lt;</code></td><td><code>&amp;lt;</code></td></tr>
+  <tr><td>Atrybut</td><td><code>value="…"</code></td><td><code>"</code></td><td><code>&amp;quot;</code></td></tr>
+  <tr><td>JavaScript</td><td><code>var x = '…'</code></td><td><code>&lt;</code></td><td><code>\\u003c</code></td></tr>
+  <tr><td>Adres URL</td><td><code>?q=…</code></td><td><code>&lt;</code></td><td><code>%3C</code></td></tr></tbody></table></div>${P(`<p class="m">Po zakodowaniu payload wyświetla się jako zwykły tekst:</p><div class="fld mono" style="font-size:16px">${esc('<img src=x onerror=alert(1)>')}</div>`,'ok')}</div>`),
+
+/* 22 */ S(4,'Kod podatny i poprawiony','Kod podatny i poprawiony','Źródło trafia prosto do sinka, a poprawka to jedno słowo.','c64',
+ `<div class="stack"><div><div class="codeh bad">${ICON.err}ŹLE</div><div class="code"><span class="c">// parametr z adresu, kontrolowany przez atakującego</span>
+const q = new URLSearchParams(location.search).get("q");
+wyniki.<span class="x">innerHTML</span> = "Wyniki dla: " + q;</div></div><div><div class="codeh good">${ICON.ok}DOBRZE</div><div class="code"><span class="c">// ten sam parametr wyświetlony jako zwykły tekst</span>
+const q = new URLSearchParams(location.search).get("q");
+wyniki.<span class="y">textContent</span> = "Wyniki dla: " + q;</div></div>${P(`<p class="m">Szczegóły i ćwiczenia z takim kodem pokażą prowadzący w części laboratoryjnej.</p>`,'soft grow ctr')}</div>`+
+ P(BL([['url','Źródło','<code>location.search</code>: atakujący dowolnie ustawia parametr.'],['sink','Sink','<code>innerHTML</code> każe przeglądarce potraktować tekst jak HTML.'],['err','Nic pomiędzy','Obrazek z <code>onerror</code> w parametrze wykona swój kod.'],['ok','Poprawka','<code>textContent</code>: to jest tekst, nie interpretuj go.']]))),
+
+/* 23 */ S(4,'Frameworki i furtki','Frameworki i ich furtki','React, Angular i Vue domyślnie kodują dane, ale każdy pozwala też wstawić surowy HTML.','c64',
+ `<div class="tblw"><table class="tbl"><thead><tr><th>Framework</th><th>Domyślnie</th><th>Furtka na surowy HTML</th></tr></thead><tbody>
+  ${[['React','koduje automatycznie','<code>dangerouslySetInnerHTML</code>'],['Angular','koduje automatycznie','<code>bypassSecurityTrustHtml()</code>'],['Vue','koduje automatycznie','<code>v-html</code>'],['Czysty JS','brak ochrony','<code>element.innerHTML</code>']].map((r,i)=>`<tr><td>${ICON[i<3?'folder':'doc']}${r[0]}</td><td><span style="display:inline-flex;align-items:center;gap:6px">${ICON[i<3?'shieldG':'warn']}${r[1]}</span></td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>`+
+ `<div class="stack">${P(`${PH('shieldG','Normalne wyświetlanie')}<p class="m">Zmienna wstawiona w zwykły sposób jest bezpieczna: framework sam ją koduje.</p>`,'ok grow ctr')}${P(`${PH('warn','Furtka = pierwsze miejsce do sprawdzenia')}<p class="m">Słowo <b>dangerously</b> jest w nazwie celowo, żeby programista się zastanowił.</p>`,'warn grow ctr')}</div>`),
+
+/* 24 */ S(4,'Sanityzacja i walidacja','Sanityzacja i walidacja','Gdy użytkownik musi wstawiać HTML (np. edytor bloga), samo kodowanie nie wystarczy.','c3',
+ P(`${PH('shieldG','Sanityzacja: DOMPurify')}<p class="m">Sprawdzona biblioteka czyści HTML.</p><div class="ckl">${[[0,'Pogrubienie <code>&lt;b&gt;</code>'],[0,'Akapit <code>&lt;p&gt;</code>'],[0,'Linki <code>&lt;a href&gt;</code>'],[1,'Znaczniki <code>&lt;script&gt;</code>'],[1,'Atrybuty <code>onerror</code>, <code>onclick</code>'],[1,'Linki <code>javascript:</code>']].map(r=>`<div>${ICON[r[0]?'err':'ok']}<span>${r[0]?'usuwa: ':'zostawia: '}${r[1]}</span></div>`).join('')}</div>`)+
+ P(`${PH('err','Nie pisz własnych regexów')}<p class="m">Atakujący mają setki sposobów na obejście filtrów, co pokazał Samy na MySpace.</p><div style="flex:1;display:flex;align-items:center">${DL('err','wlasny_filtr_regex.exe','Program napotkał problem i musi zostać zamknięty.',['Wyślij raport','Nie wysyłaj'],'width:100%')}</div>`,'bad')+
+ P(`${PH('form','Walidacja wejścia')}<p class="m">Sprawdzaj, czy dane mają sens: w polu „wiek” liczba, w polu „e-mail” adres.</p><div class="ckl"><div><span style="width:70px">Wiek:</span><div class="fld" style="flex:1">abc</div></div><div class="bal">${ICON.warn} Wpisz liczbę.</div><div><span style="width:70px">E-mail:</span><div class="fld" style="flex:1">jan@example.pl</div></div></div><p class="m"><b>Dodatkowa warstwa, nie jedyne zabezpieczenie.</b></p>`)),
+
+/* 25 */ S(4,'Content Security Policy','Content Security Policy (CSP)','Nagłówek HTTP, którym serwer mówi przeglądarce, skąd wolno ładować i wykonywać skrypty.','c46',
+ P(BL([['doc','Nagłówek HTTP','Serwer wysyła go razem ze stroną.'],['shieldG','Lista dozwolonych źródeł','Skrypty tylko z wymienionych miejsc.'],['err','Bez unsafe-inline','Skrypt wstrzyknięty w kod strony się nie wykona.'],['warn','Siatka bezpieczeństwa','Na wypadek, gdyby błąd jednak trafił do kodu.']]))+
+ `<div class="stack">${MW('naglowki.txt — Notatnik','doc',"Content-Security-Policy:\n  script-src 'self' https://cdn.zaufany.pl",{b:'np'})}${P(`${PH('ok','Wykona się')}<code style="white-space:normal;font-size:16px">${esc('<script src="https://cdn.zaufany.pl/app.js"><\/script>')}</code><p class="m">Źródło jest na liście.</p>`,'ok grow ctr')}${P(`${PH('err','Zablokowane')}<code style="white-space:normal;font-size:16px">${esc('<script>wyślijSesję()<\/script>')}</code><p class="m">Skrypt wpisany w stronę, a <code>unsafe-inline</code> jest wyłączone.</p>`,'bad grow ctr')}</div>`),
+
+/* 26 */ S(4,'Flagi ciasteczek','Flagi ciasteczek','Ograniczają szkody nawet wtedy, gdy wstrzyknięty skrypt już się wykonał.','',
+ `<div class="stack" style="height:100%">${MW('Odpowiedź serwera','server','Set-Cookie: sesja_id=a8f2…e91c; HttpOnly; Secure; SameSite=Lax',{b:'np',bs:'font-size:19px'})}<div class="c3" style="display:grid;gap:22px;flex:1;min-height:0">
+ ${P(`${PH('shieldG','HttpOnly')}<p><b>Chroni:</b> JavaScript nie odczyta ciasteczka, więc klasyczna kradzież sesji przestaje działać.</p><p class="m"><b>Nie chroni:</b> skrypt dalej może wykonywać akcje w Twoim imieniu.</p>`,'ctr')}
+ ${P(`${PH('lock','SameSite')}<p><b>Ogranicza</b> wysyłanie ciasteczek przy żądaniach przychodzących z innych stron.</p><p class="m">Chroni głównie przed CSRF, uzupełnia ochronę sesji.</p>`,'ctr')}
+ ${P(`${PH('ok','Secure')}<p>Ciasteczko jest wysyłane <b>tylko przez HTTPS</b>.</p><p class="m">Nie zatrzyma XSS, ale nie pozwala podsłuchać sesji w niezaszyfrowanym połączeniu.</p>`,'ctr')}</div></div>`),
+
+/* 27 */ S(4,'Trusted Types i obrona w głąb','Trusted Types i obrona w głąb','Żaden mechanizm nie jest idealny sam w sobie; najlepiej działają razem.','c2',
+ P(`${PH('shieldG','Trusted Types')}<p>Przeglądarka <b>blokuje</b> przypisywanie zwykłych napisów do sinków typu <code>innerHTML</code>, chyba że przeszły przez zaufaną funkcję.</p><div class="flowv"><div class="node bad">${ICON.doc}<span>zwykły napis → <code>innerHTML</code></span>${ICON.err}</div><div class="cap">TypeError: wymagany TrustedHTML</div><div class="node" style="background:var(--okbg);border-color:#A9D3A0">${ICON.doc}<span>napis → zaufana funkcja → <code>innerHTML</code></span>${ICON.ok}</div></div><p class="m">Wymusza na programiście, żeby nie zapomniał o oczyszczeniu danych.</p>`)+
+ P(`${PH('list','Defense in depth: obrona w głąb')}<div class="layers">${[['Kodowanie wyjścia','dane jako tekst'],['Sanityzacja','tylko bezpieczne tagi'],['CSP','blokuje wstrzyknięte skrypty'],['HttpOnly i SameSite','sesja nie wycieka'],['Trusted Types','sink tylko po zaufanej funkcji']].map((l,i)=>`<div class="layer" style="margin-left:${i*14}px"><b>${i+1}</b><span><b style="min-width:0">${l[0]}</b> · ${l[1]}</span>${ICON.shieldG}</div>`).join('')}</div>`)),
+
+/* 28 */ S(5,'Wnioski','Cztery rzeczy do zapamiętania','Jeśli zapamiętacie tylko tyle, to niech to będą te punkty.','g22',
+ [['Nie ufaj danym od użytkownika','Formularz, adres URL, API: wszystko z zewnątrz traktuj jako potencjalnie niebezpieczne.'],['Koduj wyjście według kontekstu','To pierwsza i najważniejsza linia obrony.'],['Uważaj na sinki','Gdy musisz wstawić HTML, użyj sprawdzonej biblioteki, nie własnych filtrów.'],['Dodaj mechanizmy przeglądarki','CSP i HttpOnly jako druga linia obrony, gdyby coś się prześlizgnęło.']]
+  .map((c,i)=>P(`<div style="display:flex;gap:18px;align-items:flex-start"><div class="numc"><div class="no">${i+1}</div></div><div><div class="ph" style="margin-bottom:8px">${c[0]}</div><p class="m">${c[1]}</p></div></div>`,'ctr'+(i===1?' soft':''))).join('')),
+
+/* 29 */ {sec:5,title:'Dziękuję',cls:'',body:`
+ ${P(`<div class="t1k">Koniec części teoretycznej</div><h1 style="font-size:110px">Dziękuję za uwagę</h1><p style="max-width:none;font-size:24px">Pytania? Chętnie odpowiem teraz albo po zajęciach.</p><div class="who"><div class="authors" style="flex-direction:row;gap:40px">${AUTH.map(n=>`<span>${ICON.user}${n}</span>`).join('')}</div></div>`,'t1')}`},
+];
+const SL=[0,4,5,2,3,...Array.from({length:23},(_,k)=>k+6)].map(i=>SL0[i]);
+
+/* ---------- nawigacja ---------- */
+const SECS=['Wstęp','Podstawy','Rodzaje XSS','Skutki','Obrona','Zakończenie'],SECIC=['info','doc','folder','bug','shieldG','ok'];
+const ST=document.getElementById('stage'),RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cur=0,scale=1;
+function render(){
+  const s=SL[cur];
+  const head=s.h?`<h2>${s.h}</h2><p class="lead">${s.lead}</p>`:'';
+  ST.innerHTML=`<div class="hdr">${ICON.xss}<span class="ht">XSS.exe <em>— ${SECS[s.sec]}</em></span><i class="tbtn mn"></i><i class="tbtn mx"></i><i class="tbtn x"></i></div>
+  <div class="page${RM?'':' fade'}">${head}<div class="body ${s.cls||''}">${s.body}</div></div>
+  <div class="sb"><div>${ICON[SECIC[s.sec]]}${SECS[s.sec]}</div><div class="grow">${s.title}</div><div><span class="segs">${SL.map((_,i)=>`<i class="${i<=cur?'on':''}"></i>`).join('')}</span></div><div class="num">Slajd ${cur+1}/${SL.length}</div></div>`;
+  try{ history.replaceState(null,'','#s'+(cur+1)); }catch(e){}
+}
+function go(i){ if(i<0||i>=SL.length) return; cur=i; render(); }
+function next(){ go(cur+1); }
+function prev(){ go(cur-1); }
+
+/* ---------- skalowanie i sterowanie ---------- */
+function fit(){ const v=document.getElementById('view'); const W=v.clientWidth,H=v.clientHeight; scale=Math.min(W/1280,H/720); ST.style.transform=`translate(-50%,-50%) scale(${scale})`; ST.style.top=(H/2)+'px'; }
+addEventListener('resize',fit);
+addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return; const k=e.key;
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)){ e.preventDefault(); next(); }
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){ e.preventDefault(); prev(); }
+});
+ST.addEventListener('click',e=>{ const r=ST.getBoundingClientRect(); if(e.clientX-r.left<r.width*0.25) prev(); else next(); });
+let tx0=null; ST.addEventListener('touchstart',e=>{ tx0=e.touches[0].clientX; },{passive:true});
+ST.addEventListener('touchend',e=>{ if(tx0==null) return; const dx=e.changedTouches[0].clientX-tx0; tx0=null; if(Math.abs(dx)>50){ e.preventDefault(); dx<0?next():prev(); } });
+fit();
+{ const m=/^#s(\d+)$/.exec(location.hash); go(m?Math.min(SL.length-1,Math.max(0,+m[1]-1)):0); }
+</script>
+
+</body></html>
