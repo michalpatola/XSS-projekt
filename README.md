@@ -54,5 +54,5 @@ Analogicznie do zadania 3. zapisz w **bazie danych** CyberForum (w naszym przypa
 <details>
 <summary>Rozwiązanie (kliknij, aby rozwinąć)</summary>
 
-Skoro taka sztuczka jak w zadaniu 2. już **nie przejdzie**, to spróbujmy czegoś innego. Wpisz w polu z nickiem lub wiadomością: `<img src="x" onerror="alert(4)">` ORAZ odśwież / uruchom ponownie stronę. Ten znacznik próbuje załadować obrazek o nazwie "x", a skoro taki **nie istnieje**, przeglądarka natychmiast uruchamia zdarzenie **onerror**.
+Skoro taka sztuczka jak w zadaniu 2. już **nie przejdzie**, to spróbujmy czegoś innego. Wpisz w polu z nickiem lub wiadomością: `<img src="x" onerror="alert(4)">` **ORAZ** odśwież / uruchom ponownie stronę. Ten znacznik próbuje załadować obrazek o nazwie "x", a skoro taki **nie istnieje**, przeglądarka natychmiast uruchamia zdarzenie **onerror**.
 </details>
