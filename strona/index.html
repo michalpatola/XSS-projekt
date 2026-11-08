@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorium XSS – Wybór zadań</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Demonstracja podatności XSS</h1>
+      <p>Wybierz podstronę, aby przejść do wybranego scenariusza.</p>
+    </header>
+
+    <main class="hub-grid">
+      <a href="zadanie1/index.html" class="hub-card hub-card-v1">
+        <div>
+          <div class="hub-card-meta">
+            <span class="hub-card-tag">Zadanie 1</span>
+            <span class="badge badge-v1">łatwiejsze</span>
+          </div>
+          <h2>Wyszukiwarka sklepowa</h2>
+          <p>Sklep internetowy z polem wyszukiwania produktów.</p>
+        </div>
+        <span class="hub-card-action">Otwórz zadanie &rarr;</span>
+      </a>
+
+      <a href="zadanie2/index.html" class="hub-card hub-card-v2">
+        <div>
+          <div class="hub-card-meta">
+            <span class="hub-card-tag">Zadanie 2</span>
+            <span class="badge badge-v2">trudniejsze</span>
+          </div>
+          <h2>Wyszukiwarka sklepowa</h2>
+          <p>Wyszukiwarka sklepowa z filtrem usuwającym każdy znacznik &lt;script&gt;.</p>
+        </div>
+        <span class="hub-card-action">Otwórz zadanie &rarr;</span>
+      </a>
+
+      <a href="zadanie3/index.html" class="hub-card hub-card-v1">
+        <div>
+          <div class="hub-card-meta">
+            <span class="hub-card-tag">Zadanie 3</span>
+            <span class="badge badge-v1">łatwiejsze</span>
+          </div>
+          <h2>Forum dyskusyjne</h2>
+          <p>Sekcja komentarzy na forum demonstrująca Stored XSS z wykorzystaniem mechanizmu localStorage.</p>
+        </div>
+        <span class="hub-card-action">Otwórz zadanie &rarr;</span>
+      </a>
+
+      <a href="zadanie4/index.html" class="hub-card hub-card-v2">
+        <div>
+          <div class="hub-card-meta">
+            <span class="hub-card-tag">Zadanie 4</span>
+            <span class="badge badge-v2">trudniejsze</span>
+          </div>
+          <h2>Forum dyskusyjne</h2>
+          <p>Interfejst forum dyskusyjnego z filtrem rekursywnie usuwającym znaczniki &lt;script&gt;.</p>
+        </div>
+        <span class="hub-card-action">Otwórz zadanie &rarr;</span>
+      </a>
+    </main>
+  </div>
+</body>
+</html>

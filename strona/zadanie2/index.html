@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sklep CyberStore – Wyszukiwarka (Zadanie 2 - trudniejsze)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="variant-2">
+  <div class="container">
+    <header class="header">
+      <div class="header-top">
+        <a href="../index.html" class="back-link">&larr; Powrót do menu</a>
+        <span class="badge badge-v2">Zadanie 2 &bull; trudniejsze</span>
+      </div>
+      <h1>CyberStore – Inteligentna wyszukiwarka</h1>
+      <p>Nowoczesny katalog produktów i komponentów technologicznych.</p>
+    </header>
+
+    <main class="card">
+      <form id="search-form" method="GET">
+        <div class="form-group">
+          <label for="search-query">Wyszukiwanie katalogowe</label>
+          <div class="search-bar">
+            <input type="text" id="search-query" name="q" class="input-text" placeholder="Wpisz nazwę podzespołu lub akcesorium...">
+            <button type="submit" id="search-button" class="btn">Szukaj</button>
+          </div>
+        </div>
+      </form>
+
+      <section class="results-section">
+        <div id="results-container" class="results-box">
+          Brak aktywnych filtrów wyszukiwania. Wprowadź zapytanie.
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

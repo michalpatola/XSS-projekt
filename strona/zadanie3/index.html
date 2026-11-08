@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum Dyskusyjne – Komentarze (Zadanie 3 - łatwiejsze)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="variant-1">
+  <div class="container">
+    <header class="header">
+      <div class="header-top">
+        <a href="../index.html" class="back-link">&larr; Powrót do menu</a>
+        <span class="badge badge-v1">Zadanie 3 &bull; łatwiejsze</span>
+      </div>
+      <h1>Forum Sprzętowe – Wątek dyskusyjny</h1>
+      <p>Wymiana opinii na temat architektury systemów komputerowych.</p>
+    </header>
+
+    <main class="card">
+      <form id="comment-form">
+        <div class="form-group">
+          <label for="author-input">Autor / Nick</label>
+          <input type="text" id="author-input" name="author" class="input-text" placeholder="Wpisz swój pseudonim...">
+        </div>
+
+        <div class="form-group">
+          <label for="comment-input">Treść komentarza</label>
+          <textarea id="comment-input" name="comment" class="textarea" placeholder="Napisz swój komentarz..."></textarea>
+        </div>
+
+        <button type="submit" id="submit-comment" class="btn">Dodaj komentarz</button>
+      </form>
+
+      <section class="comments-section">
+        <h2 class="comments-header">Opublikowane komentarze</h2>
+        <div id="comments-container" class="comments-list">
+          <!-- Komentarze z localStorage będą wstawiane tutaj przez JavaScript -->
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

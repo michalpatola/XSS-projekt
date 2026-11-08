@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sklep TechShop – Wyszukiwarka (Zadanie 1 - łatwiejsze)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="variant-1">
+  <div class="container">
+    <header class="header">
+      <div class="header-top">
+        <a href="../index.html" class="back-link">&larr; Powrót do menu</a>
+        <span class="badge badge-v1">Zadanie 1 &bull; łatwiejsze</span>
+      </div>
+      <h1>TechShop – Wyszukiwarka produktów</h1>
+      <p>Wyszukaj sprzęt i akcesoria w naszym sklepie.</p>
+    </header>
+
+    <main class="card">
+      <form id="search-form" method="GET">
+        <div class="form-group">
+          <label for="search-query">Szukaj w asortymencie</label>
+          <div class="search-bar">
+            <input type="text" id="search-query" name="q" class="input-text" placeholder="Wpisz frazę wyszukiwania...">
+            <button type="submit" id="search-button" class="btn">Szukaj</button>
+          </div>
+        </div>
+      </form>
+
+      <section class="results-section">
+        <div id="results-container" class="results-box">
+          Brak wyszukiwania. Wpisz frazę powyżej, aby przeszukać asortyment.
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
