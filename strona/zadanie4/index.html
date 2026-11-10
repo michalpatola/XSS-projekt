@@ -33,12 +33,17 @@
       </form>
 
       <section class="comments-section">
-        <h2 class="comments-header">Komentarze społeczności</h2>
+        <div class="comments-section-header">
+          <h2 class="comments-header">Komentarze społeczności</h2>
+          <button type="button" id="btn-clear-comments" class="btn-clear-comments" title="Wyczyść zapisane komentarze">Wyczyść historię</button>
+        </div>
         <div id="comments-container" class="comments-list">
           <!-- Komentarze z localStorage będą wstawiane tutaj przez JavaScript -->
         </div>
       </section>
     </main>
   </div>
+  <script src="../js/flag-capture.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
