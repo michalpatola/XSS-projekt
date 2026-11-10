@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       commentInput.value = '';
       authorInput.value = '';
-      render();
+      // Komentarz został zapisany w localStorage, ale pojawi się dopiero po odświeżeniu strony
     });
   }
 
